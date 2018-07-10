@@ -40,9 +40,7 @@ void ICACHE_RAM_ATTR osWatch(void)
     unsigned long last_run = abs(t - last_loop);
     if (last_run >= (OSWATCH_RESET_TIME * 1000))
     {
-      // save the hit here to eeprom or to rtc memory if needed
-        ESP.restart();  // normal reboot
-        //ESP.reset();  // hard reset
+        ESP.restart();
     }
 }
 
@@ -139,8 +137,14 @@ bool mqtt_reconnect()
             // * Resubscribe to the mqtt topic
             mqtt_client.subscribe(MQTT_DOORBELL_TOPIC_SET);
 
-            Serial.printf("MQTT config topic out: %s\n", MQTT_DOORBELL_TOPIC);
-            Serial.printf("MQTT config topic in: %s\n", MQTT_DOORBELL_TOPIC_SET);
+            Serial.print(F("MQTT button topic out: "));
+            Serial.println(MQTT_BUTTON_TOPIC);
+
+            Serial.print(F("MQTT doorbell topic out: "));
+            Serial.println(MQTT_DOORBELL_TOPIC);
+
+            Serial.print(F("MQTT doorbell topic in: "));
+            Serial.println(MQTT_DOORBELL_TOPIC_SET);
         }
         else
         {
@@ -317,14 +321,12 @@ void write_eeprom(int offset, int len, String value)
 // * Setup WIFI                             *
 // ******************************************
 
-// * If set to true; eeprom is written
-bool shouldSaveConfig = false;
 
 // * Callback notifying us of the need to save config
 void save_wifi_config_callback ()
 {
     Serial.println(F("Should save config"));
-    shouldSaveConfig = true;
+    SAVE_WIFI_CONFIG = true;
 }
 
 // * Configure wifimanager
@@ -394,7 +396,7 @@ void setup_wifi()
     }
 
     // * Save the custom parameters to FS
-    if (shouldSaveConfig)
+    if (SAVE_WIFI_CONFIG)
     {
         Serial.println(F("Saving WiFiManager config"));
         write_eeprom(0, 64, MQTT_HOST);     // * 0-63

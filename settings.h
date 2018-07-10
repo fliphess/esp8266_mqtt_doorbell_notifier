@@ -38,6 +38,9 @@
 // * Will be updated each loop
 static unsigned long last_loop;
 
+// * If set to true; eeprom is written
+bool SAVE_WIFI_CONFIG = false;
+
 //
 // * JSON Settings
 //
