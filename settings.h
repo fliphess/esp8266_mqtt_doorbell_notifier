@@ -80,33 +80,11 @@ int BUTTON_PRESS_COUNT = 0;
 // * The last time the button was pressed
 unsigned long BUTTON_PRESS_TIMESTAMP;
 
-// * The default wait time before the doorbell ring is retriggered
-int BUTTON_RETRIGGER_TIME = 3000;                   // * 3 seconds
-
-// * Default max times the doorbel is pressed before a delay is issued
+// * Default max times the doorbel is pressed before throttling
 int BUTTON_THROTTLE_MAX = 3;                        // * Max 3 times
 
-// * The default wait time when the button has reached `DOORBELL_THROTTLE_MAX` times
-unsigned long BUTTON_THROTTLE_TIME = 8000;          // * 8 seconds
-
-//
-// * Button Force Mode
-//
-
-// * Will be set with timestamp of Last time FORCE mode was used
-unsigned long LAST_FORCED_PRESS;
-
-// * The time before another force mode can be activated
-unsigned long FORCE_MODE_WAIT_TIME = 30000;         // Wait 30 seconds before force can be used again
-
-// * The time of a single long press to enable force mode
-unsigned long FORCE_MODE_LONG_PRESS_TIME = 8000;   // * 8 seconds
-
-// * The amount of presses to get a longer emergency ring
-int FORCE_PRESSES = 11;                             // push the button for 11 times
-
-// * The time an emergency rings takes
-unsigned long FORCE_DURATION = 2000;                // 2 seconds
+// * The default wait time when the button has reached `BUTTON_THROTTLE_MAX` times
+unsigned long BUTTON_THROTTLE_TIME = 5000;          // * 5 seconds
 
 //
 // * Bell Sequence Settings
@@ -139,13 +117,15 @@ unsigned long DOORBEL_RING_DURATION = 500;   // * 0.5 seconds
 // * Pulse Mode
 //
 
-// * Will be set to one when pulse is active
-int PULSE_ACTIVE = 0;
 
 // Default pulse settings (used when not specified)
-unsigned long DEFAULT_PULSE_TIME = 500;      // 0.5 seconds
-unsigned long DEFAULT_PULSE_WAIT_TIME = 500; // 0.5 seconds
+int DEFAULT_PULSE                     = 0;
+unsigned long DEFAULT_PULSE_TIME      = 500;             // 0.5 seconds
+unsigned long DEFAULT_PULSE_WAIT_TIME = 500;             // 0.5 seconds
+
+// * Will be set to 1 when pulse is active
+int PULSE_ACTIVE = DEFAULT_PULSE;
 
 // * Will be overwritten when custom pulse timing is requested
-unsigned long PULSE_TIME = 500;      // 0.5 seconds
-unsigned long PULSE_WAIT_TIME = 500; // 0.5 seconds
+unsigned long PULSE_TIME      = DEFAULT_PULSE_TIME;      // 0.5 seconds
+unsigned long PULSE_WAIT_TIME = DEFAULT_PULSE_WAIT_TIME; // 0.5 seconds
