@@ -38,10 +38,9 @@ void ICACHE_RAM_ATTR osWatch(void)
 {
     unsigned long t = millis();
     unsigned long last_run = abs(t - last_loop);
+
     if (last_run >= (OSWATCH_RESET_TIME * 1000))
-    {
         ESP.restart();
-    }
 }
 
 // **********************************
@@ -49,7 +48,7 @@ void ICACHE_RAM_ATTR osWatch(void)
 // **********************************
 
 // * Gets called when WiFiManager enters configuration mode
-void configModeCallback(WiFiManager *myWiFiManager)
+void wifi_ap_mode_callback(WiFiManager *myWiFiManager)
 {
     Serial.println(F("Entered config mode"));
     Serial.println(WiFi.softAPIP());
@@ -97,6 +96,8 @@ void send_mqtt_ring_state()
     root["pulse"] = PULSE_ACTIVE;
     root["pulse_time"] = PULSE_TIME;
     root["pulse_wait"] = PULSE_WAIT_TIME;
+
+    char JSON_OUTPUT_BUFFER[200];
     root.printTo(JSON_OUTPUT_BUFFER, sizeof(JSON_OUTPUT_BUFFER));
 
     Serial.print(F("MQTT Outgoing: "));
@@ -167,10 +168,6 @@ bool mqtt_reconnect()
     return true;
 }
 
-// **********************************
-// * MQTT INPUT                     *
-// **********************************
-
 // * Process incoming json
 bool process_json_input(char *payload)
 {
@@ -204,13 +201,9 @@ bool process_json_input(char *payload)
         if (root.containsKey("state"))
         {
             if (strcmp(ON_STATE, root["state"]) == 0)
-            {
                 start_doorbell_sequence(duration, pulse, pulse_wait_time, pulse_time);
-            }
             else if (strcmp(OFF_STATE, root["state"]) == 0)
-            {
                 stop_doorbell_sequence();
-            }
         }
 
         return true;
@@ -235,6 +228,25 @@ void mqtt_callback(char *topic, byte *payload_in, unsigned int length)
     // * If processing ran successfully, send state to mqtt out topic
     if (!result)
         Serial.println(F("Error input from MQTT broker: parseObject() failed."));
+}
+
+// * Manage mqtt connection or reconnect if down
+void mqtt_loop()
+{
+    if (!mqtt_client.connected())
+    {
+        long now = millis();
+
+        if (now - LAST_RECONNECT_ATTEMPT > 5000)
+        {
+            LAST_RECONNECT_ATTEMPT = now;
+
+            if (mqtt_reconnect())
+                LAST_RECONNECT_ATTEMPT = 0;
+        }
+    }
+    else
+        mqtt_client.loop();
 }
 
 // **********************************
@@ -290,6 +302,81 @@ void start_doorbell_sequence(unsigned long duration, int pulse, unsigned long pu
     }
 
     send_mqtt_ring_state();
+}
+
+void doorbell_ring_loop()
+{
+    if (BELL_SEQUENCE_ACTIVE == 1)
+    {
+        if (BELL_SEQUENCE_RING_ON == 1)
+        {
+            if (millis() - BELL_SEQUENCE_DURATION >= BELL_SEQUENCE_STARTED)
+            {
+                stop_doorbell_sequence();
+                return;
+            }
+
+            if (PULSE_ACTIVE == 1)
+            {
+                if (millis() - PULSE_TIME >= BELL_SEQUENCE_RING_ON_TIME)
+                    doorbell_turn_off();
+            }
+        }
+
+        else if (BELL_SEQUENCE_RING_ON == 0)
+        {
+            if (PULSE_ACTIVE == 1)
+            {
+                if (millis() - PULSE_WAIT_TIME >= BELL_SEQUENCE_RING_OFF_TIME)
+                    doorbell_turn_on();
+            }
+        }
+    }
+}
+
+// **********************************
+// * Button functions               *
+// **********************************
+
+void button_turned_on()
+{
+    BUTTON_PRESS_ACTIVE = 1;
+    BUTTON_PRESS_TIMESTAMP = millis();
+    BUTTON_PRESS_COUNT++;
+
+    Serial.println(F("Button pressed"));
+    send_button_state_to_broker();
+
+    // * Turn doorbell on if no throttling
+    if (BUTTON_PRESS_COUNT <= BUTTON_THROTTLE_MAX)
+        start_doorbell_sequence(DEFAULT_RING_DURATION, 0, 0, 0);
+}
+
+void button_turned_off()
+{
+    BUTTON_PRESS_ACTIVE = 0;
+
+    Serial.println(F("Button released"));
+    send_button_state_to_broker();
+}
+
+void button_loop()
+{
+    // * Read button input and ring if pressed within limits
+    if (debouncer.update())
+    {
+        if (debouncer.read() != HIGH)
+            button_turned_on();
+        else
+            button_turned_off();
+    }
+
+    // * Set button press counter to zero so a new button press can be initiated without being throttled
+    if ((BUTTON_PRESS_ACTIVE == 0) && (BUTTON_PRESS_COUNT >= BUTTON_THROTTLE_MAX) && (millis() - BUTTON_THROTTLE_TIME >= BUTTON_PRESS_TIMESTAMP))
+    {
+        BUTTON_PRESS_TIMESTAMP = millis();
+        BUTTON_PRESS_COUNT = 0;
+    }
 }
 
 // **********************************
@@ -355,7 +442,7 @@ void setup_wifi()
     // wifiManager.resetSettings();
 
     // * Set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-    wifiManager.setAPCallback(configModeCallback);
+    wifiManager.setAPCallback(wifi_ap_mode_callback);
 
     // * Set timeout
     wifiManager.setConfigPortalTimeout(WIFI_TIMEOUT);
@@ -537,91 +624,12 @@ void loop()
     // * Handle ota offers
     ArduinoOTA.handle();
 
-    //
     // * Maintain MQTT Connection
-    //
-    if (!mqtt_client.connected())
-    {
-        long now = millis();
+    mqtt_loop();
 
-        if (now - LAST_RECONNECT_ATTEMPT > 5000)
-        {
-            LAST_RECONNECT_ATTEMPT = now;
-            if (mqtt_reconnect())
-            {
-                LAST_RECONNECT_ATTEMPT = 0;
-            }
-        }
-    }
-    else
-        mqtt_client.loop();
-
-    //
     // * Button Sequence
-    //
-    int BUTTON_STATE_CHANGED = 0;
+    button_loop();
 
-    // * Read button input and ring if pressed within limits
-    if (debouncer.update())
-    {
-        BUTTON_STATE_CHANGED = 1;
-
-        if (debouncer.read() != HIGH)
-        {
-            Serial.println(F("Button pressed"));
-            BUTTON_PRESS_ACTIVE = 1;
-            BUTTON_PRESS_TIMESTAMP = millis();
-            BUTTON_PRESS_COUNT++;
-
-            if ((BUTTON_PRESS_ACTIVE == 1) && (BUTTON_PRESS_COUNT <= BUTTON_THROTTLE_MAX))
-                start_doorbell_sequence(DOORBEL_RING_DURATION, 0, 0, 0);
-        }
-        else
-        {
-            Serial.println(F("Button released"));
-            BUTTON_PRESS_ACTIVE = 0;
-        }
-    }
-
-    // * Set button press counter to zero so a new button press can be initiated without being throttled
-    if ((BUTTON_PRESS_ACTIVE == 0) && (BUTTON_PRESS_COUNT >= BUTTON_THROTTLE_MAX) && (millis() - BUTTON_THROTTLE_TIME >= BUTTON_PRESS_TIMESTAMP))
-        BUTTON_PRESS_COUNT = 0;
-
-    // * Send update to broker if state changed
-    if (BUTTON_STATE_CHANGED == 1)
-    {
-        BUTTON_STATE_CHANGED = 0;
-        send_button_state_to_broker();
-    }
-
-    //
     // * Bell sequence
-    //
-
-    if (BELL_SEQUENCE_ACTIVE == 1)
-    {
-        if (BELL_SEQUENCE_RING_ON == 1)
-        {
-            if (millis() - BELL_SEQUENCE_DURATION >= BELL_SEQUENCE_STARTED)
-            {
-                stop_doorbell_sequence();
-                return;
-            }
-
-            if (PULSE_ACTIVE == 1)
-            {
-                if (millis() - PULSE_TIME >= BELL_SEQUENCE_RING_ON_TIME)
-                    doorbell_turn_off();
-            }
-        }
-
-        else if (BELL_SEQUENCE_RING_ON == 0)
-        {
-            if (PULSE_ACTIVE == 1)
-            {
-                if (millis() - PULSE_WAIT_TIME >= BELL_SEQUENCE_RING_OFF_TIME)
-                    doorbell_turn_on();
-            }
-        }
-    }
+    doorbell_ring_loop();
 }

@@ -35,39 +35,37 @@
 // * Watchdog settings
 #define OSWATCH_RESET_TIME 300
 
+// * The topics to get and set the doorbell ringer state
+#define MQTT_DOORBELL_TOPIC "home/doorbell/ring"
+#define MQTT_DOORBELL_TOPIC_SET "home/doorbell/ring/set"
+
+// * The topic where button updates are send
+#define MQTT_BUTTON_TOPIC "home/doorbell/button"
+
 // * Will be updated each loop
 static unsigned long last_loop;
 
 // * If set to true; eeprom is written
-bool SAVE_WIFI_CONFIG = false;
+bool SAVE_WIFI_CONFIG                     = false;
 
 //
 // * JSON Settings
 //
 
-const int JSON_BUFFER_SIZE = JSON_OBJECT_SIZE(4) + 150;
-char JSON_OUTPUT_BUFFER[200];
-
+const int JSON_BUFFER_SIZE                = JSON_OBJECT_SIZE(4) + 150;
 
 //
 // * MQTT Settings
 //
 
-// * To be filled with EEPROM data
-char MQTT_HOST[64]   = "";
-char MQTT_PORT[6]    = "";
-char MQTT_USER[32]   = "";
-char MQTT_PASS[32]   = "";
-
 // * MQTT Last reconnection counter
-long LAST_RECONNECT_ATTEMPT = 0;
+long LAST_RECONNECT_ATTEMPT               = 0;
 
-// * The topics to get and set the doorbell ringer state
-char *MQTT_DOORBELL_TOPIC     = (char *) "home/doorbell/ring";
-char *MQTT_DOORBELL_TOPIC_SET = (char *) "home/doorbell/ring/set";
-
-// * The topic where button updates are send
-char *MQTT_BUTTON_TOPIC       = (char *) "home/doorbell/button";
+// * To be filled with EEPROM data
+char MQTT_HOST[64]                        = "";
+char MQTT_PORT[6]                         = "";
+char MQTT_USER[32]                        = "";
+char MQTT_PASS[32]                        = "";
 
 
 //
@@ -75,26 +73,29 @@ char *MQTT_BUTTON_TOPIC       = (char *) "home/doorbell/button";
 //
 
 // Will be set to 1 when the button is actively pressed
-int BUTTON_PRESS_ACTIVE = 0;
+int BUTTON_PRESS_ACTIVE                   = 0;
 
 // * Will be increased with 1 everytime the button is pressed
-int BUTTON_PRESS_COUNT = 0;
+int BUTTON_PRESS_COUNT                    = 0;
 
 // * The last time the button was pressed
 unsigned long BUTTON_PRESS_TIMESTAMP;
 
 // * Default max times the doorbel is pressed before throttling
-int BUTTON_THROTTLE_MAX = 3;                        // * Max 3 times
+int BUTTON_THROTTLE_MAX                   = 3;                        // * Max 3 times
 
 // * The default wait time when the button has reached `BUTTON_THROTTLE_MAX` times
-unsigned long BUTTON_THROTTLE_TIME = 5000;          // * 5 seconds
+unsigned long BUTTON_THROTTLE_TIME        = 5000;                     // * 5 seconds
 
 //
 // * Bell Sequence Settings
 //
 
 // * Will be set to 1 when an alarm is active
-int BELL_SEQUENCE_ACTIVE = 0;
+int BELL_SEQUENCE_ACTIVE                  = 0;
+
+// * Will be set to 1 when the ring is actually on
+int BELL_SEQUENCE_RING_ON                 = 0;
 
 // * The timestamp of when the alarm sequence was initiated
 unsigned long BELL_SEQUENCE_STARTED;
@@ -102,33 +103,29 @@ unsigned long BELL_SEQUENCE_STARTED;
 // * The duration of the alarm sequence
 unsigned long BELL_SEQUENCE_DURATION;
 
-// * Will be set to 1 when the ring is actually on
-int BELL_SEQUENCE_RING_ON = 0;
-
 // * Will hold on/off timing of the doorbell ring
-unsigned long BELL_SEQUENCE_RING_ON_TIME = 0;
+unsigned long BELL_SEQUENCE_RING_ON_TIME  = 0;
 unsigned long BELL_SEQUENCE_RING_OFF_TIME = 0;
 
 //
-// * Doorbel Ring Settings
+// * Default Settings
 //
 
 // * The default time in milliseconds how long the bell should sound
-unsigned long DOORBEL_RING_DURATION = 500;   // * 0.5 seconds
+unsigned long DEFAULT_RING_DURATION       = 300;                      // * 0.3 seconds
+
+// Default pulse settings (used when not specified)
+int DEFAULT_PULSE                         = 0;
+unsigned long DEFAULT_PULSE_TIME          = 500;                      // 0.5 seconds
+unsigned long DEFAULT_PULSE_WAIT_TIME     = 500;                      // 0.5 seconds
 
 //
 // * Pulse Mode
 //
 
-
-// Default pulse settings (used when not specified)
-int DEFAULT_PULSE                     = 0;
-unsigned long DEFAULT_PULSE_TIME      = 500;             // 0.5 seconds
-unsigned long DEFAULT_PULSE_WAIT_TIME = 500;             // 0.5 seconds
-
 // * Will be set to 1 when pulse is active
-int PULSE_ACTIVE = DEFAULT_PULSE;
+int PULSE_ACTIVE                          = DEFAULT_PULSE;
 
 // * Will be overwritten when custom pulse timing is requested
-unsigned long PULSE_TIME      = DEFAULT_PULSE_TIME;      // 0.5 seconds
-unsigned long PULSE_WAIT_TIME = DEFAULT_PULSE_WAIT_TIME; // 0.5 seconds
+unsigned long PULSE_TIME                  = DEFAULT_PULSE_TIME;       // 0.5 seconds
+unsigned long PULSE_WAIT_TIME             = DEFAULT_PULSE_WAIT_TIME;  // 0.5 seconds
