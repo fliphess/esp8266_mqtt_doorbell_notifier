@@ -179,10 +179,10 @@ bool process_json_input(char *payload)
         int pulse = 0;
         unsigned long duration = 0;
         unsigned long pulse_time = DEFAULT_PULSE_TIME;
-        unsigned long pulse_wait_time = DEFAULT_PULSE_WAIT_TIME;
+        unsigned long pulse_wait = DEFAULT_PULSE_WAIT_TIME;
 
-        if (root.containsKey("pulse_wait_time"))
-            pulse_wait_time = (unsigned long) root["pulse_wait_time"];
+        if (root.containsKey("pulse_wait"))
+            pulse_wait = (unsigned long) root["pulse_wait"];
 
         if (root.containsKey("pulse_time"))
             pulse_time = (unsigned long) root["pulse_time"];
@@ -201,7 +201,7 @@ bool process_json_input(char *payload)
         if (root.containsKey("state"))
         {
             if (strcmp(ON_STATE, root["state"]) == 0)
-                start_doorbell_sequence(duration, pulse, pulse_wait_time, pulse_time);
+                start_doorbell_sequence(duration, pulse, pulse_wait, pulse_time);
             else if (strcmp(OFF_STATE, root["state"]) == 0)
                 stop_doorbell_sequence();
         }
@@ -286,7 +286,7 @@ void stop_doorbell_sequence()
     send_mqtt_ring_state();
 }
 
-void start_doorbell_sequence(unsigned long duration, int pulse, unsigned long pulse_wait_time, unsigned long pulse_time)
+void start_doorbell_sequence(unsigned long duration, int pulse, unsigned long pulse_wait, unsigned long pulse_time)
 {
     doorbell_turn_on();
 
@@ -298,7 +298,7 @@ void start_doorbell_sequence(unsigned long duration, int pulse, unsigned long pu
     {
         PULSE_ACTIVE = 1;
         PULSE_TIME = pulse_time;
-        PULSE_WAIT_TIME = pulse_wait_time;
+        PULSE_WAIT_TIME = pulse_wait;
     }
 
     send_mqtt_ring_state();
