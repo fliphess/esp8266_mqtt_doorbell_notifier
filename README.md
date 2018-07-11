@@ -34,9 +34,11 @@ Button:
 
 The doorbell button and ringer state are send to separate MQTT topics so you can use both for different automations.
 When the ringer started or stopped, a json string is send to `home/doorbell/ring`.
-To control the ringer, send your json payload to `home/doorbell/ring` as described below.
+To control the ringer, send your json payload to `home/doorbell/ring/set` as described below.
 
 When the button is pressed or released a single `ON` or `OFF` payload is send to `home/doorbell/button`.
+
+You can change the topics and some other settings in `settings.h`
 
 ### Ringer modes when using MQTT
 
@@ -47,8 +49,6 @@ the silence between pulses should be (`pulse_wait`)
 ### MQTT ringer control
 
 To use the ringer as an alarm bell, you can publish a json payload to the configured MQTT topic.
-Change the `MQTT_DOORBELL_TOPIC` and `MQTT_DOORBELL_TOPIC_SET` settings in `setings.h` to change the MQTT topic.
-
 To activate the ringer, send a json payload to `home/doorbell/ring/set`:
 
 ```
