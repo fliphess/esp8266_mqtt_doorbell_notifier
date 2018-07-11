@@ -89,4 +89,11 @@ mosquitto_pub -h $MQTT_BROKER -t "home/doorbell/ring/set" -m '{"pulse":1,"durati
 mqtt-pub "home/doorbell/ring/set" '{"pulse":1,"duration":1000,"pulse_time":100,"pulse_wait_time":100,"state":"ON"}'
 ```
 
-It won't work if you make the wait or pulse time longer than the duration of the pulse.
+Pulse won't work if you make the wait or pulse time longer than the duration of the pulse.
+
+## Home Assistant Config
+
+TODO - I've to add my home assistant configuration here to show how notifications are send when the doorbell is pressed and how an alert is send and lights are turned on when the doorbell is pressed at night.
+
+
+
