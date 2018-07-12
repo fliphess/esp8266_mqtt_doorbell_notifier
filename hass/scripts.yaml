@@ -39,7 +39,7 @@ play_doorbell_emergency_alarm:
   sequence:
     - service: mqtt.publish
       data:
-        payload: '{"state":"ON","duration":360000,"pulse":1,"pulse_time":1000,"pulse_wait":300}'
+        payload: '{"state":"ON","duration":60000,"pulse":1,"pulse_time":800,"pulse_wait":400}'
         topic: "home/doorbell/ring/set"
 
 stop_doorbell_alarm:
@@ -47,7 +47,7 @@ stop_doorbell_alarm:
   sequence:
     - service: mqtt.publish
       data:
-        payload: '{"state":"ON","duration":360000,"pulse":1,"pulse_time":500,"pulse_wait":300}'
+        payload: '{"state":"OFF"}'
         topic: "home/doorbell/ring/set"
 
 ############################################################
@@ -186,4 +186,3 @@ doorbell_is_jammed:
       state: 'home'
 
     - service: script.play_doorbell_ringer_beep
-
