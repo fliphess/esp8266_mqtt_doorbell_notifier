@@ -1,0 +1,12 @@
+
+doorbell_button_pressed_counter:
+  initial: 0
+  step: 1
+  name: Doorbell Counter
+  icon: mdi:bell
+
+doorbell_button_pressed_total:
+  initial: 0
+  step: 1
+  name: Doorbell Counter
+  icon: mdi:bell

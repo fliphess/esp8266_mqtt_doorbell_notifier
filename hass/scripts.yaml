@@ -1,0 +1,189 @@
+############################################################
+## Doorbell ringer scripts                                ##
+############################################################
+
+play_doorbell_ringer_beep:
+  alias: Play Doorbell Ringer Beep
+  sequence:
+    - service: mqtt.publish
+      data:
+        payload: '{"state":"ON","duration":100}'
+        topic: "home/doorbell/ring/set"
+
+play_doorbell_ringer_short:
+  alias: Play Doorbell Ringer Short
+  sequence:
+    - service: mqtt.publish
+      data:
+        payload: '{"state":"ON","duration":500}'
+        topic: "home/doorbell/ring/set"
+
+play_doorbell_ringer_long:
+  alias: Play Doorbell Ringer Long
+  sequence:
+    - service: mqtt.publish
+      data:
+        payload: '{"state":"ON","duration":3000}'
+        topic: "home/doorbell/ring/set"
+
+play_doorbell_alarm:
+  alias: Play Doorbell Ringer Alarm
+  sequence:
+    - service: mqtt.publish
+      data:
+        payload: '{"state":"ON","duration":10000,"pulse":1,"pulse_time":500,"pulse_wait":500}'
+        topic: "home/doorbell/ring/set"
+
+play_doorbell_emergency_alarm:
+  alias: Play Doorbell Emergency Alarm
+  sequence:
+    - service: mqtt.publish
+      data:
+        payload: '{"state":"ON","duration":360000,"pulse":1,"pulse_time":1000,"pulse_wait":300}'
+        topic: "home/doorbell/ring/set"
+
+stop_doorbell_alarm:
+  alias: Stop Doorbell Sound
+  sequence:
+    - service: mqtt.publish
+      data:
+        payload: '{"state":"ON","duration":360000,"pulse":1,"pulse_time":500,"pulse_wait":300}'
+        topic: "home/doorbell/ring/set"
+
+############################################################
+## Doorbell automation scripts                            ##
+############################################################
+
+doorbell_is_triggered:
+  alias: Doorbell button is triggered
+  sequence:
+    - service: script.turn_on
+      entity_id: script.doorbell_is_triggered_multiple_times
+
+    - condition: template
+      value_template: >
+        {%- if states.automation.notify_when_doorbell_is_pressed.last_triggered -%}
+          {{ (as_timestamp(now()) - as_timestamp(states.automation.notify_when_doorbell_is_pressed.attributes.last_triggered)) > 120 }}
+        {%- else -%}
+          true
+        {%- endif -%}
+
+    - service: script.send_notification
+      data_template:
+        notification_id: "doorbell_press"
+        title: "ALARM ALERT - Doorbell Pressed"
+        message: "Your doorbell button appears to be pressed. Someone is at the door ;)"
+
+    - condition: state
+      entity_id: group.tracked_users
+      state: 'home'
+
+    - condition: template
+      value_template: >
+        {% if states('sensor.lux_sensor') | int < states('input_number.low_light_action_value') | int -%}
+          true
+        {% else -%}
+          false
+        {%- endif %}
+
+    - condition: state
+      entity_id: light.milight_hall_light
+      state: "off"
+
+    - service: script.turn_hall_light_on_low
+
+
+doorbell_is_triggered_long:
+  alias: Doorbell button is triggered for 20 seconds
+  sequence:
+    - condition: time
+      after: '23:59:00'
+      before: '07:00:00'
+
+    - condition: template
+      value_template: >
+        {%- if states.automation.notify_when_doorbell_is_pressed_for_20_seconds.last_triggered -%}
+          {{ (as_timestamp(now()) - as_timestamp(states.automation.notify_when_doorbell_is_pressed_for_20_seconds.attributes.last_triggered)) > 120 }}
+        {%- else -%}
+          true
+        {%- endif -%}
+
+    - service: script.send_notification
+      data_template:
+        notification_id: "doorbell_long_press"
+        title: "ALARM ALERT - Doorbell Pressed Urgently"
+        message: "Your doorbell button appears to be pressed for at least 20 seconds! It might be urgent ;)"
+
+    - condition: state
+      entity_id: group.tracked_users
+      state: 'home'
+
+    - service: script.play_doorbell_ringer_long
+
+
+doorbell_is_triggered_multiple_times:
+  alias: Doorbell button is triggered multiple times
+  sequence:
+    - condition: numeric_state
+      entity_id: counter.doorbell_button_pressed_counter
+      above: 20
+
+    - service: counter.reset
+      entity_id: counter.doorbell_button_pressed_counter
+
+    - condition: time
+      after: '23:59:00'
+      before: '07:00:00'
+
+    - condition: template
+      value_template: >
+        {%- if states.automation.notify_when_doorbell_is_pressed.last_triggered -%}
+          {{ (as_timestamp(now()) - as_timestamp(states.automation.notify_when_doorbell_is_pressed.attributes.last_triggered)) > 60 }}
+        {%- else -%}
+          true
+        {%- endif -%}
+
+    - service: script.send_notification
+      data_template:
+        notification_id: "doorbell_multiple_times"
+        title: "ALARM ALERT - Doorbell pressed multiple times"
+        message: "Your doorbell button appears to be pressed at least 20 times! It might be urgent ;)"
+
+    - condition: state
+      entity_id: group.tracked_users
+      state: 'home'
+
+    - service: script.play_doorbell_ringer_long
+
+
+doorbell_is_jammed:
+  alias: Doorbell button is jammed
+  sequence:
+    - condition: state
+      entity_id: group.tracked_users
+      state: 'home'
+
+    - condition: time
+      after: '07:00:00'
+      before: '23:59:00'
+
+    - condition: template
+      value_template: >
+        {%- if states.automation.notify_when_doorbell_is_jammed.last_triggered -%}
+          {{ (as_timestamp(now()) - as_timestamp(states.automation.notify_when_doorbell_is_jammed.attributes.last_triggered)) > 28800 }}
+        {%- else -%}
+          true
+        {%- endif -%}
+
+    - service: script.send_notification
+      data_template:
+        notification_id: "doorbell_jammed"
+        title: "ALARM ALERT - Doorbell Jammed"
+        message: "Your doorbell button appears to be jammed, as it has been on for at least 10 minutes"
+
+    - condition: state
+      entity_id: group.tracked_users
+      state: 'home'
+
+    - service: script.play_doorbell_ringer_beep
+

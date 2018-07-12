@@ -93,7 +93,4 @@ Pulse won't work if you make the wait or pulse time longer than the duration of 
 
 ## Home Assistant Config
 
-TODO - I've to add my home assistant configuration here to show how notifications are send when the doorbell is pressed and how an alert is send and lights are turned on when the doorbell is pressed at night.
-
-
-
+Have a look at the yaml files in hass/ to get an idea how to integrate in home assistant

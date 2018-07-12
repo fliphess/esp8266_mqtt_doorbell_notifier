@@ -1,0 +1,10 @@
+
+- platform: mqtt
+  name: Doorbell Ringer
+  state_topic: "home/doorbell/ring"
+  value_template: "{{ value_json.state }}"
+  json_attributes:
+    - duration
+    - pulse
+    - pulse_time
+    - pulse_wait

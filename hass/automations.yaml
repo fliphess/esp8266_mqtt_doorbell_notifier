@@ -1,0 +1,75 @@
+############################################################
+## Send notification when doorbell is triggered           ##
+############################################################
+
+- alias: Notify when doorbell is pressed
+  initial_state: true
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.doorbell_button
+      to: "on"
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_boolean.automation_override
+        state: 'off'
+  action:
+    - service: counter.increment
+      entity_id: counter.doorbell_button_pressed_counter
+    - service: counter.increment
+      entity_id: counter.doorbell_button_pressed_total
+    - service: script.turn_on
+      entity_id: script.doorbell_is_triggered
+
+
+- alias: Notify when doorbell is pressed for 20 seconds
+  initial_state: true
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.doorbell_button
+      to: "on"
+      for:
+        seconds: 20
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_boolean.automation_override
+        state: 'off'
+  action:
+    - service: script.turn_on
+      entity_id: script.doorbell_is_triggered_long
+
+
+- alias: Notify when doorbell is jammed
+  initial_state: true
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.doorbell_button
+      to: "on"
+      for:
+        minutes: 10
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_boolean.automation_override
+        state: 'off'
+  action:
+    - service: script.turn_on
+      entity_id: script.doorbell_is_jammed
+
+
+- alias: Reset doorbell counter when idle for 2 minutes
+  initial_state: true
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.doorbell_button
+      to: "off"
+      for:
+        minutes: 2
+  action:
+    - service: counter.reset
+      entity_id: counter.doorbell_button_pressed_counter
+
