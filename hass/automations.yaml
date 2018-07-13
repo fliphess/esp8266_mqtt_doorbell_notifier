@@ -9,11 +9,9 @@
       entity_id: binary_sensor.doorbell_button
       to: "on"
   condition:
-    condition: and
-    conditions:
-      - condition: state
-        entity_id: input_boolean.automation_override
-        state: 'off'
+    - condition: state
+      entity_id: input_boolean.automation_override
+      state: 'off'
   action:
     - service: counter.increment
       entity_id: counter.doorbell_button_pressed_counter
@@ -32,11 +30,9 @@
       for:
         seconds: 20
   condition:
-    condition: and
-    conditions:
-      - condition: state
-        entity_id: input_boolean.automation_override
-        state: 'off'
+    - condition: state
+      entity_id: input_boolean.automation_override
+      state: 'off'
   action:
     - service: script.turn_on
       entity_id: script.doorbell_is_triggered_long
@@ -51,11 +47,9 @@
       for:
         minutes: 10
   condition:
-    condition: and
-    conditions:
-      - condition: state
-        entity_id: input_boolean.automation_override
-        state: 'off'
+    - condition: state
+      entity_id: input_boolean.automation_override
+      state: 'off'
   action:
     - service: script.turn_on
       entity_id: script.doorbell_is_jammed
