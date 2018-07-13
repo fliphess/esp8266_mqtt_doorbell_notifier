@@ -91,10 +91,7 @@ void webserver_handle_json()
     bool result = process_json_input((char*) json_input.c_str());
 
     if (result)
-    {
-        send_mqtt_ring_state();
         webserver.send(200, "application/json", F("{\"success\":\"true\",\"message\":\"OK\"}"));
-    }
     else
     {
         Serial.println(F("Error input from HTTP input: parseObject() failed."));
@@ -216,7 +213,6 @@ bool mqtt_reconnect()
             Serial.print(F("MQTT Connection failed: rc="));
             Serial.println(mqtt_client.state());
             Serial.println(F(" Retrying in 5 seconds"));
-            Serial.println("");
 
             // * Wait 5 seconds before retrying
             delay(5000);
@@ -539,7 +535,7 @@ void setup_wifi()
     // * Verify updated parameters
     if (strlen(MQTT_HOST) == 0 || strlen(MQTT_PORT) == 0 || strlen(MQTT_USER) == 0 || strlen(MQTT_PASS) == 0)
     {
-        Serial.print("Config Faulty, Kicking config");
+        Serial.println(F("Config Faulty, Kicking config"));
         wifiManager.resetSettings();
 
         delay(2000);
@@ -624,7 +620,7 @@ void setup_mdns()
     if (mdns_result)
         MDNS.addService("http", "tcp", 80);
     else
-        Serial.println("Failed to setup MDNS");
+        Serial.println(F("Failed to setup MDNS"));
 }
 
 // **********************************
