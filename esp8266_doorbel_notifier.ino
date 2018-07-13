@@ -27,6 +27,9 @@ WiFiClient espClient;
 // * Initiate MQTT client
 PubSubClient mqtt_client(espClient);
 
+// * Initiate HTTP server
+ESP8266WebServer webserver (HTTP_PORT);
+
 // * Initiate button debouncer
 Bounce debouncer = Bounce();
 
@@ -73,20 +76,68 @@ void led_tick()
 }
 
 // **********************************
-// * MQTT OUTPUT                    *
+// * Webserver                      *
 // **********************************
 
-// * Update button to mqtt topic
-void send_button_state_to_broker()
+// * Handle json input string
+void webserver_handle_json()
 {
-    const char *button_state = (BUTTON_PRESS_ACTIVE == 1) ? ON_STATE : OFF_STATE;
+    // * Handle json input from http webserver
+    String json_input = webserver.arg("plain");
 
-    if (!mqtt_client.publish(MQTT_BUTTON_TOPIC, button_state))
-        Serial.println(F("Failed to publish button state to broker"));
+    Serial.print(F("HTTP Incoming: "));
+    Serial.println(json_input);
+
+    bool result = process_json_input((char*) json_input.c_str());
+
+    if (result)
+    {
+        send_mqtt_ring_state();
+        webserver.send(200, "application/json", F("{\"success\":\"true\",\"message\":\"OK\"}"));
+    }
+    else
+    {
+        Serial.println(F("Error input from HTTP input: parseObject() failed."));
+        webserver.send(500, "application/json", F("{\"success\":\"false\",\"message\":\"Update Failed\"}"));
+    }
 }
 
-// * Publish the state of the doorbell to the mqtt broker
-void send_mqtt_ring_state()
+// * Return the status of the ledstrip as a json string
+void webserver_handle_status()
+{
+    // * Update the current state
+    update_json_output_buffer();
+
+    // * Send the current json status to the client
+    webserver.send(200, "application/json", JSON_OUTPUT_BUFFER);
+}
+
+// * Return a 404 when the page does not exist
+void webserver_handle_not_found()
+{
+    // * Handle 404 not found error
+    webserver.send(404, "text/plain", F("File Not Found"));
+}
+
+
+// * Setup the webserver
+void setup_webserver()
+{
+    Serial.println(F("HTTP Webserver setup"));
+
+    webserver.on("/",    webserver_handle_status);
+    webserver.on("/set", webserver_handle_json);
+    webserver.onNotFound(webserver_handle_not_found);
+    webserver.begin();
+
+    Serial.println(F("HTTP Webserver Started"));
+}
+
+// **********************************
+// * MQTT                           *
+// **********************************
+
+void update_json_output_buffer()
 {
     StaticJsonBuffer<JSON_BUFFER_SIZE> jsonBuffer;
     JsonObject &root = jsonBuffer.createObject();
@@ -97,20 +148,33 @@ void send_mqtt_ring_state()
     root["pulse_time"] = PULSE_TIME;
     root["pulse_wait"] = PULSE_WAIT_TIME;
 
-    char JSON_OUTPUT_BUFFER[200];
     root.printTo(JSON_OUTPUT_BUFFER, sizeof(JSON_OUTPUT_BUFFER));
+}
+
+
+// * Update button to mqtt topic
+void send_button_state_to_broker()
+{
+    const char *button_state = (BUTTON_PRESS_ACTIVE == 1) ? ON_STATE : OFF_STATE;
+
+    if (!mqtt_client.publish(MQTT_BUTTON_TOPIC, button_state))
+        Serial.println(F("Failed to publish button state to broker"));
+}
+
+
+// * Publish the state of the doorbell to the mqtt broker
+void send_mqtt_ring_state()
+{
+    update_json_output_buffer();
 
     Serial.print(F("MQTT Outgoing: "));
     Serial.println(JSON_OUTPUT_BUFFER);
 
     bool result = mqtt_client.publish(MQTT_DOORBELL_TOPIC, JSON_OUTPUT_BUFFER, true);
+
     if (!result)
         Serial.println(F("MQTT publish failed "));
 }
-
-// **********************************
-// * MQTT                           *
-// **********************************
 
 // * Reconnect to MQTT server and subscribe to in and out topics
 bool mqtt_reconnect()
@@ -556,6 +620,11 @@ void setup_mdns()
 {
     Serial.println(F("Starting MDNS responder service"));
     bool mdns_result = MDNS.begin(HOSTNAME);
+
+    if (mdns_result)
+        MDNS.addService("http", "tcp", 80);
+    else
+        Serial.println("Failed to setup MDNS");
 }
 
 // **********************************
@@ -599,6 +668,9 @@ void setup()
     digitalWrite(LED_BUILTIN, LOW);
     ticker.detach();
 
+    // * Setup Webserver
+    setup_webserver();
+
     // * Configure OTA
     setup_ota();
 
@@ -623,6 +695,9 @@ void loop()
 
     // * Handle ota offers
     ArduinoOTA.handle();
+
+    // * Handle webserver requests
+    webserver.handleClient();
 
     // * Maintain MQTT Connection
     mqtt_loop();

@@ -23,6 +23,9 @@
 // * The hostname of the clock
 #define HOSTNAME "doorbell.home"
 
+// * The port the webserver listens on
+#define HTTP_PORT 80
+
 // * The password used for uploading
 #define OTA_PASSWORD "admin"
 
@@ -53,6 +56,9 @@ bool SAVE_WIFI_CONFIG                     = false;
 //
 
 const int JSON_BUFFER_SIZE                = JSON_OBJECT_SIZE(4) + 150;
+
+// * The buffer to convert arduinojson object to char*
+char JSON_OUTPUT_BUFFER[200];
 
 //
 // * MQTT Settings

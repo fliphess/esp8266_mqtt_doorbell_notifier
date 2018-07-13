@@ -27,6 +27,30 @@ Button:
 | GND      | WIRE 1 |
 | D5       | WIRE 2 |
 
+## HTTP API
+
+You can get the state of the ringer over http:
+
+*Get:*
+```
+## Get the doorbell ringer state
+curl http://door.bell
+```
+
+The ringer is controllable over http by posting json to the d1:
+
+*Set:*
+
+```
+## Turn on with pulse
+curl --header 'Content-Type: application/json' -X POST --data '{"state":"ON","duration":1500,"pulse":1,"pulse_time":500,"pulse_wait":500}' http://door.bell/set
+
+## Turn on long
+curl --header 'Content-Type: application/json' -X POST --data '{"state":"ON","duration":60000}' http://door.bell/set
+
+## Turn off
+curl --header 'Content-Type: application/json' -X POST --data '{"state":"OFF"}' http://door.bell/set
+```
 
 ## MQTT
 
