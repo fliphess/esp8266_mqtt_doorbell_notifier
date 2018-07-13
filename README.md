@@ -43,13 +43,22 @@ The ringer is controllable over http by posting json to the d1:
 
 ```
 ## Turn on with pulse
-curl --header 'Content-Type: application/json' -X POST --data '{"state":"ON","duration":1500,"pulse":1,"pulse_time":500,"pulse_wait":500}' http://door.bell/set
+DATA='{"state":"ON","duration":1500,"pulse":1,"pulse_time":500,"pulse_wait":500}'
+
+curl --header 'Content-Type: application/json' -X POST \
+     --data $DATA http://door.bell/set
 
 ## Turn on long
-curl --header 'Content-Type: application/json' -X POST --data '{"state":"ON","duration":60000}' http://door.bell/set
+DATA='{"state":"ON","duration":60000}'
+
+curl --header 'Content-Type: application/json' -X POST \
+     --data $DATA http://door.bell/set
 
 ## Turn off
-curl --header 'Content-Type: application/json' -X POST --data '{"state":"OFF"}' http://door.bell/set
+DATA='{"state":"OFF"}'
+
+curl --header 'Content-Type: application/json' -X POST \
+     --data $DATA http://door.bell/set
 ```
 
 ## MQTT
