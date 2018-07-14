@@ -1,10 +1,11 @@
 # esp8266 Doorbell Notifier over MQTT
 
-This is a little sketch I use to send notifications to home-assistant when my doorbell is triggered.
+This is a little sketch I use to send notifications to home-assistant when my doorbell button is pushed.
+It sends a message to an MQTT topic when the button is pressed. 
 
-Using a Wemos D1 esp8266 board and a relay shield in between the AC doorbell trafo and the ringer
-while connecting the doorbell button to the esp8266 pins, this humble little instance can controll
-my ringer over MQTT and HTTP as an alarm bell and send notifications to a MQTT topic when the button is pressed.
+Using a Wemos D1 esp8266 board and a relay shield in between the AC doorbell trafo and the ringer and 
+connecting the doorbell button to the esp8266 pins, this humble little instance can control
+my ringer over MQTT and HTTP as an alarm bell as well.
 
 To prevent the doorbell from locking and ringing all day while I'm at work or annoying little neighbour kids
 playing with the doorbells, throttling is activated after the button has been pressed multiple times.
@@ -169,6 +170,24 @@ The latest state of the doorbell ringer will be send to the MQTT state topic on 
 
 ## Home Assistant Config
 
-Have a look at the yaml files in hass/ to get an idea how to integrate in home assistant
+Have a look at the yaml files in `hass/` to get an idea how to integrate in home assistant
 
+### Disable auto ringing when the button is pressed 
 
+If you want the doorbell ringer only to be triggered from your home automation, so you can decide whether to ring or send a notification, set `RING_WHEN_PRESSED` to `0` in `settings.h`. 
+
+If this flag is set to `0`, no bell is ringed when the button is pressed, so you'll need some automation to do so:
+
+```
+- alias: Notify when doorbell is pressed
+  initial_state: true
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.doorbell_button
+      to: "on"
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "home/doorbell/ring/set"
+        payload: '{"state":"ON"}'
+```
