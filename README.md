@@ -1,4 +1,4 @@
-# esp8266_mqtt_doorbell_notifier
+# esp8266 Doorbell Notifier over MQTT
 
 This is a little sketch I use to send notifications to home-assistant when my doorbell is triggered.
 
@@ -8,6 +8,8 @@ my ringer over MQTT and HTTP as an alarm bell and send notifications to a MQTT t
 
 To prevent the doorbell from locking and ringing all day while I'm at work or annoying little neighbour kids
 playing with the doorbells, throttling is activated after the button has been pressed multiple times.
+
+Additionally you can disable the button over mqtt and http in case of a nasty hangover.
 
 
 ## Setup
@@ -56,14 +58,14 @@ To use the ringer as an alarm bell, you can publish or post a json payload to th
 
 The keys and values you can use in your json string are:
 
-| Key               |  Value        | Functionality |
-| -------           | -------       | -------       |
-| `state`           | `ON` or `OFF` | Turn the ringer ON or OFF. |
+| Key               |  Value        | Functionality                                    |
+| -------           | -------       | -------                                          |
+| `state`           | `ON` or `OFF` | Turn the ringer ON or OFF.                       |
 | `duration`        | number        | The time in milliseconds the ringer should sound |
-| `pulse`           | `1` or `0`        | Enable (1) or disable (0) pulse mode |
-| `pulse_time`      | number        | The duration of a ring pulse |
-| `pulse_wait`      | number        | The wait time in between ring pulses |
-| `button_disabled` | `1` or `0`    | Enable or Disable the button |
+| `pulse`           | `1` or `0`        | Enable (1) or disable (0) pulse mode         |
+| `pulse_time`      | number        | The duration of a ring pulse                     |
+| `pulse_wait`      | number        | The wait time in between ring pulses             |
+| `button_disabled` | `1` or `0`    | Enable or Disable the button                     |
 
 Only the `state` setting is required to enable or disable the ring, the others are optional.
 
@@ -71,6 +73,10 @@ If you don't implicitly set the pulse settings and or the duration, the default 
 
 After each ring cycle the settings are reset to their default value.
 The latest value always takes presence, so if you publish data to set a ringer for 10 seconds, you can stop it any time by sending another command over both mqtt or http.
+
+If you change the timing settings while ringing, some unexpected behaviour can appear as this is changed on the fly.
+
+Pulse won't work if you make the wait or pulse time longer than the duration of the pulse.
 
 
 ### HTTP
@@ -113,7 +119,7 @@ post '{"button_disabled":0}'
 ## Enable disable button
 
 There are multiple ways to disable the button.
-You can either use the json method, that is available for mqtt as well, as both methods share the same json parser, or use the dedicated endpoints:
+You can either use the json method, that is available for mqtt as well, as both methods share the same json parser, or use the dedicated http endpoints:
 
 ```
 ## Disable the button
@@ -159,7 +165,6 @@ publish '{"button_disabled":0}'
 ```
 
 The latest state of the doorbell ringer will be send to the MQTT state topic on every change.
-Pulse won't work if you make the wait or pulse time longer than the duration of the pulse.
 
 
 ## Home Assistant Config
