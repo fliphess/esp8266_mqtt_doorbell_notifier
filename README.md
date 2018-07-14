@@ -10,7 +10,7 @@ To prevent the doorbell from locking and ringing all day while I'm at work or an
 playing with the doorbells, throttling is activated after the button has been pressed multiple times.
 
 
-## Setup 
+## Setup
 
 Connect the relay shield to the Wemos D1 using the header pins and connect the doorbell button to GND and D5.
 For more info see the pinout.
@@ -33,17 +33,17 @@ Button:
 | D5       | WIRE 2 |
 
 
-### Flashing 
+### Flashing
 
-To flash the sketch to the nodemcu i used the arduino IDE, but with minor adjustments you can use platformio as well. 
+To flash the sketch to the nodemcu i used the arduino IDE, but with minor adjustments you can use platformio as well.
 I'll create some configuration later to make this more accessible. (A PR is welcome)
 
 ## API
 
-You can get and set the state of the ringer over http and mqtt. 
+You can get and set the state of the ringer over http and mqtt.
 As there is not much use to it, it's not possible to trigger the button itself over mqtt or http.
 
-### Ringer modes 
+### Ringer modes
 
 By enabling or disabling pulse mode you can choose whether the doorbell should make a constant ringing sound or in intervalse causing a pulse.
 Using the time functions you can adjust the time the ring sounds (`duration`) in total, how long a single pulse should sound (`pulse_time`) and how long
@@ -73,7 +73,7 @@ After each ring cycle the settings are reset to their default value.
 The latest value always takes presence, so if you publish data to set a ringer for 10 seconds, you can stop it any time by sending another command over both mqtt or http.
 
 
-### HTTP 
+### HTTP
 
 You can post json or retrieve the status of the doorbell ringer using http requests:
 
@@ -88,7 +88,7 @@ The ringer is controllable over http by posting json to the d1:
 *Set:*
 
 ```
-function post() { 
+function post() {
     curl --header 'Content-Type: application/json' -X POST \
         --data "$@" http://door.bell/set
 }
@@ -110,9 +110,9 @@ post '{"button_disabled":0}'
 
 ```
 
-## Enable disable button 
+## Enable disable button
 
-There are multiple ways to disable the button. 
+There are multiple ways to disable the button.
 You can either use the json method, that is available for mqtt as well as both methods share the same json parser, or use the dedicated endpoints:
 
 ```
@@ -137,7 +137,7 @@ You can change the topics and some other settings in `settings.h`
 *Set:*
 
 ```
-function publish() { 
+function publish() {
     mosquitto_pub -h $MQTT_BROKER -t "home/doorbell/ring/set" -m "$@"
 }
 
@@ -167,6 +167,3 @@ Pulse won't work if you make the wait or pulse time longer than the duration of 
 Have a look at the yaml files in hass/ to get an idea how to integrate in home assistant
 
 
-## TODO 
-
-- Add a mechanism to completely disable the doorbell ringer remotely for a certain amount of time or until reactivated
