@@ -434,8 +434,8 @@ void button_turned_on()
     Serial.println(F("Button pressed"));
     send_button_state_to_broker();
 
-    // * Turn doorbell on if no throttling
-    if (BUTTON_PRESS_COUNT <= BUTTON_THROTTLE_MAX)
+    // * Turn doorbell ring on if no throttling
+    if ((RING_WHEN_PRESSED == 1) && BUTTON_PRESS_COUNT <= BUTTON_THROTTLE_MAX))
         start_doorbell_sequence(DEFAULT_RING_DURATION, 0, 0, 0);
 }
 

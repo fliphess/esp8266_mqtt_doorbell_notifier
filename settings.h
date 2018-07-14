@@ -50,6 +50,10 @@
 // * The topic where button updates are send
 #define MQTT_BUTTON_TOPIC "home/doorbell/button"
 
+// * Auto Ring: Ring the bell when pressed.
+// When set to 0, your home automation can trigger the ring when needed, but no ring is triggered automagically
+int RING_WHEN_PRESSED                     = 1;
+
 // * Default max times the doorbel is pressed before throttling
 int BUTTON_THROTTLE_MAX                   = 3;      // * Max 3 times
 
