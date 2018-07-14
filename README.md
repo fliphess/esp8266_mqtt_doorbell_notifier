@@ -56,13 +56,14 @@ To use the ringer as an alarm bell, you can publish or post a json payload to th
 
 The keys and values you can use in your json string are:
 
-| Key          |  Value        | Functionality |
-| -------      | -------       | -------       |
-| `state`      | `ON` or `OFF` | Turn the ringer ON or OFF. |
-| `duration`   | number        | The time in milliseconds the ringer should sound |
-| `pulse`      | 1 or 0        | Enable (1) or disable (0) pulse mode |
-| `pulse_time` | number        | The duration of a ring pulse |
-| `pulse_wait` | number        | The wait time in between ring pulses |
+| Key               |  Value        | Functionality |
+| -------           | -------       | -------       |
+| `state`           | `ON` or `OFF` | Turn the ringer ON or OFF. |
+| `duration`        | number        | The time in milliseconds the ringer should sound |
+| `pulse`           | `1` or `0`        | Enable (1) or disable (0) pulse mode |
+| `pulse_time`      | number        | The duration of a ring pulse |
+| `pulse_wait`      | number        | The wait time in between ring pulses |
+| `button_disabled` | `1` or `0`    | Enable or Disable the button |
 
 Only the `state` setting is required to enable or disable the ring, the others are optional.
 
@@ -100,6 +101,27 @@ post '{"state":"ON","duration":60000}'
 
 ## Turn off
 post '{"state":"OFF"}'
+
+## Disable the button
+post '{"button_disabled":1}'
+
+## Enable the button again
+post '{"button_disabled":0}'
+
+```
+
+## Enable disable button 
+
+There are multiple ways to disable the button. 
+You can either use the json method, that is available for mqtt as well as both methods share the same json parser, or use the dedicated endpoints:
+
+```
+## Disable the button
+curl http://door.bell/disable
+
+## Enable the button again
+curl http://door.bell/enable
+
 ```
 
 ### MQTT
@@ -127,6 +149,13 @@ publish '{"state":"ON","duration":60000}'
 
 ## Turn off
 publish '{"state":"OFF"}'
+
+## Disable the button
+publish '{"button_disabled":1}'
+
+## Enable the button again
+publish '{"button_disabled":0}'
+
 ```
 
 The latest state of the doorbell ringer will be send to the MQTT state topic on every change.
@@ -136,3 +165,8 @@ Pulse won't work if you make the wait or pulse time longer than the duration of 
 ## Home Assistant Config
 
 Have a look at the yaml files in hass/ to get an idea how to integrate in home assistant
+
+
+## TODO 
+
+- Add a mechanism to completely disable the doorbell ringer remotely for a certain amount of time or until reactivated

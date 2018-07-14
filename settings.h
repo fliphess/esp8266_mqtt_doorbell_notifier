@@ -64,7 +64,6 @@ int DEFAULT_PULSE                         = 0;
 unsigned long DEFAULT_PULSE_TIME          = 500;    // 0.5 seconds
 unsigned long DEFAULT_PULSE_WAIT_TIME     = 500;    // 0.5 seconds
 
-
 // ****************************************************
 //                                                    *
 // * Counters and variables                           *
@@ -78,7 +77,7 @@ static unsigned long last_loop;
 bool SAVE_WIFI_CONFIG                     = false;
 
 // * JSON Settings
-const int JSON_BUFFER_SIZE                = JSON_OBJECT_SIZE(4) + 150;
+const int JSON_BUFFER_SIZE                = JSON_OBJECT_SIZE(5) + 150;
 
 // * The buffer to convert arduinojson object to char*
 char JSON_OUTPUT_BUFFER[200];
@@ -100,6 +99,9 @@ int BUTTON_PRESS_COUNT                    = 0;
 
 // * The last time the button was pressed
 unsigned long BUTTON_PRESS_TIMESTAMP;
+
+// * Will be set to 1 when the button is disabled
+int BUTTON_DISABLED                       = 0;
 
 // * Will be set to 1 when an alarm is active
 int BELL_SEQUENCE_ACTIVE                  = 0;

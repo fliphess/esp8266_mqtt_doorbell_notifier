@@ -99,7 +99,7 @@ void webserver_handle_json()
     }
 }
 
-// * Return the status of the ledstrip as a json string
+// * Return the status of the ringer as a json string
 void webserver_handle_status()
 {
     // * Update the current state
@@ -109,6 +109,22 @@ void webserver_handle_status()
     webserver.send(200, "application/json", JSON_OUTPUT_BUFFER);
 }
 
+// * Set the button to disabled 
+void webserver_handle_disable()
+{
+    BUTTON_DISABLED = 1;
+    button_turned_off();
+    webserver.send(200, "text/plain", F("Button Disabled"));
+}
+
+// * Set the button to enabled
+void webserver_handle_enable() 
+{
+    BUTTON_DISABLED = 0;
+    webserver.send(200, "text/plain", F("Button Enabled"));
+}
+
+
 // * Return a 404 when the page does not exist
 void webserver_handle_not_found()
 {
@@ -116,14 +132,16 @@ void webserver_handle_not_found()
     webserver.send(404, "text/plain", F("File Not Found"));
 }
 
-
 // * Setup the webserver
 void setup_webserver()
 {
     Serial.println(F("HTTP Webserver setup"));
 
-    webserver.on("/",    webserver_handle_status);
-    webserver.on("/set", webserver_handle_json);
+    webserver.on("/",        webserver_handle_status);
+    webserver.on("/set",     webserver_handle_json);
+    webserver.on("/enable",  webserver_handle_enable);
+    webserver.on("/disable", webserver_handle_disable);
+
     webserver.onNotFound(webserver_handle_not_found);
     webserver.begin();
 
@@ -140,6 +158,7 @@ void update_json_output_buffer()
     JsonObject &root = jsonBuffer.createObject();
 
     root["state"] = (BELL_SEQUENCE_ACTIVE == 1) ? ON_STATE : OFF_STATE;
+    root["button_disabled"] = BUTTON_DISABLED;
     root["duration"] = BELL_SEQUENCE_DURATION;
     root["pulse"] = PULSE_ACTIVE;
     root["pulse_time"] = PULSE_TIME;
@@ -240,6 +259,14 @@ bool process_json_input(char *payload)
         unsigned long duration = 0;
         unsigned long pulse_time = DEFAULT_PULSE_TIME;
         unsigned long pulse_wait = DEFAULT_PULSE_WAIT_TIME;
+
+        if (root.containsKey("button_disabled"))
+        {
+            if (root["button_disabled"] == 1)
+                BUTTON_DISABLED = 1;
+            else
+                BUTTON_DISABLED = 0;
+        }
 
         if (root.containsKey("pulse_wait"))
             pulse_wait = (unsigned long) root["pulse_wait"];
@@ -415,13 +442,15 @@ void button_turned_on()
 void button_turned_off()
 {
     BUTTON_PRESS_ACTIVE = 0;
-
     Serial.println(F("Button released"));
     send_button_state_to_broker();
 }
 
 void button_loop()
 {
+    if (BUTTON_DISABLED == 1)
+        return;
+
     // * Read button input and ring if pressed within limits
     if (debouncer.update())
     {

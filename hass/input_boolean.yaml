@@ -1,0 +1,5 @@
+# Doorbell button enabled
+doorbell_button_enabled:
+  name: Doorbell Button Enabled
+  initial: on
+  icon: mdi:bell
