@@ -170,7 +170,7 @@ The latest state of the doorbell ringer will be send to the MQTT state topic on 
 
 ## Home Assistant Config
 
-Have a look at the yaml files in hass/ to get an idea how to integrate in home assistant
+Have a look at the yaml files in `hass/` to get an idea how to integrate in home assistant
 
 ### Disable auto ringing when the button is pressed 
 
