@@ -1,16 +1,14 @@
----
 - platform: mqtt
   name: Doorbell Button
   state_topic: "home/doorbell/button"
-  icon: mdi:bell
   payload_on: "ON"
   payload_off: "OFF"
+  icon: mdi:bell
 
 - platform: mqtt
-  name: Doorbell Button Disabled
+  name: Doorbell Button Enabled
   state_topic: "home/doorbell/ring"
-  value_template: "{{ value_json.button_disabled }}"
-  icon: mdi:bell
   payload_off: 1
   payload_on: 0
-
+  value_template: "{{ value_json.button_disabled }}"
+  icon: mdi:bell
