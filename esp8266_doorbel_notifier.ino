@@ -109,7 +109,7 @@ void webserver_handle_status()
     webserver.send(200, "application/json", JSON_OUTPUT_BUFFER);
 }
 
-// * Set the button to disabled 
+// * Set the button to disabled
 void webserver_handle_disable()
 {
     BUTTON_DISABLED = 1;
@@ -118,7 +118,7 @@ void webserver_handle_disable()
 }
 
 // * Set the button to enabled
-void webserver_handle_enable() 
+void webserver_handle_enable()
 {
     BUTTON_DISABLED = 0;
     webserver.send(200, "text/plain", F("Button Enabled"));
@@ -435,7 +435,7 @@ void button_turned_on()
     send_button_state_to_broker();
 
     // * Turn doorbell ring on if no throttling
-    if ((RING_WHEN_PRESSED == 1) && BUTTON_PRESS_COUNT <= BUTTON_THROTTLE_MAX))
+    if ((RING_WHEN_PRESSED == 1) && (BUTTON_PRESS_COUNT <= BUTTON_THROTTLE_MAX))
         start_doorbell_sequence(DEFAULT_RING_DURATION, 0, 0, 0);
 }
 
