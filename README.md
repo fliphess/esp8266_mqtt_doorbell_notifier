@@ -113,7 +113,7 @@ post '{"button_disabled":0}'
 ## Enable disable button
 
 There are multiple ways to disable the button.
-You can either use the json method, that is available for mqtt as well as both methods share the same json parser, or use the dedicated endpoints:
+You can either use the json method, that is available for mqtt as well, as both methods share the same json parser, or use the dedicated endpoints:
 
 ```
 ## Disable the button
