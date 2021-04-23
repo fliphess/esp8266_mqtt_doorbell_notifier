@@ -1,5 +1,8 @@
 # esp8266 Doorbell Notifier over MQTT
 
+**This repository is unmaintained since I moved all my esp ledstrips to esphome**
+
+
 This is a little sketch I use to send notifications to home-assistant when my doorbell button is pushed.
 It sends a message to an MQTT topic when the button is pressed. 
 
